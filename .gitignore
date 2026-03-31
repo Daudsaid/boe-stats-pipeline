@@ -1,2 +1,20 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
+.env
+
+# Data files
+data/raw/
+data/transformed/
+
+# dbt
+boe_stats_pipeline/logs/
+boe_stats_pipeline/target/
+boe_stats_pipeline/.user.yml
+
+# Logs
+logs/
+
+# OS
+.DS_Store
