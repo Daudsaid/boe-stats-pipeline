@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: stg_base_rate
+    columns:
+      - name: date
+        tests:
+          - not_null
+          - unique
+      - name: base_rate_pct
+        tests:
+          - not_null
+      - name: rate_direction
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['hike', 'cut', 'hold']
+
+  - name: stg_exchange_rates
+    columns:
+      - name: date
+        tests:
+          - not_null
+          - unique
+      - name: gbp_usd
+        tests:
+          - not_null
+      - name: gbp_eur
+        tests:
+          - not_null
+
+  - name: stg_mortgage_rate
+    columns:
+      - name: date
+        tests:
+          - not_null
+          - unique
+      - name: mortgage_rate_pct
+        tests:
+          - not_null
+
+  - name: stg_m4_money_supply
+    columns:
+      - name: date
+        tests:
+          - not_null
+          - unique
+      - name: m4_gbp_millions
+        tests:
+          - not_null

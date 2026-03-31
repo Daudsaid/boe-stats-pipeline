@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: boe_postgres
+    environment:
+      POSTGRES_USER: daudsaid
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: boe_pipeline
+    ports:
+      - "5433:5432"
+    volumes:
+      - boe_postgres_data:/var/lib/postgresql/data
+
+  airflow:
+    image: apache/airflow:2.8.1
+    container_name: boe_airflow
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://daudsaid:postgres@postgres:5432/boe_pipeline
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../:/opt/airflow/boe-stats-pipeline
+    ports:
+      - "8080:8080"
+    command: standalone
+
+volumes:
+  boe_postgres_data:
