@@ -17,7 +17,7 @@ import pandas as pd
 import streamlit as st
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
-REPO_URL = "https://github.com/Daudsaid/boe-stats-pipeline"
+REPO_URL = "https://github.com/Daudsaid/uk-interest-rates-pipeline"
 
 # Validated categorical palette (fixed order, never cycled). Max 4 series per chart.
 SLOT = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100"]

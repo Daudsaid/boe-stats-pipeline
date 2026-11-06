@@ -1,5 +1,5 @@
 [project]
-name = "boe-stats-pipeline"
+name = "uk-interest-rates-pipeline"
 version = "2.0.0"
 description = "Bank of England statistics pipeline: IADB -> dlt -> DuckDB/MotherDuck -> dbt"
 readme = "README.md"

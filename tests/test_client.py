@@ -85,4 +85,4 @@ def test_client_does_not_retry_client_errors():
 def test_client_sends_identifying_user_agent():
     responses.get(IADB_URL, body="DATE,IUDBEDR\n02 Jan 2025,4.75\n")
     IADBClient().fetch("IUDBEDR", date(2025, 1, 1))
-    assert "boe-stats-pipeline" in responses.calls[0].request.headers["User-Agent"]
+    assert "uk-interest-rates-pipeline" in responses.calls[0].request.headers["User-Agent"]

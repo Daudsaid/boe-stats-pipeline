@@ -28,8 +28,8 @@ log = logging.getLogger(__name__)
 
 IADB_URL = "https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp"
 DEFAULT_USER_AGENT = (
-    "Mozilla/5.0 (compatible; boe-stats-pipeline/2.0; "
-    "+https://github.com/Daudsaid/boe-stats-pipeline)"
+    "Mozilla/5.0 (compatible; uk-interest-rates-pipeline/2.0; "
+    "+https://github.com/Daudsaid/uk-interest-rates-pipeline)"
 )
 IADB_DATE_FORMAT = "%d %b %Y"  # e.g. "02 Jan 2025"
 

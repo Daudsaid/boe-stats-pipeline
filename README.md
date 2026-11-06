@@ -2,10 +2,10 @@
 
 *50 years of Bank of England data, from Bank Rate to your mortgage.*
 
-[![CI](https://github.com/Daudsaid/boe-stats-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/Daudsaid/boe-stats-pipeline/actions/workflows/ci.yml)
-[![Refresh data](https://github.com/Daudsaid/boe-stats-pipeline/actions/workflows/refresh.yml/badge.svg)](https://github.com/Daudsaid/boe-stats-pipeline/actions/workflows/refresh.yml)
+[![CI](https://github.com/Daudsaid/uk-interest-rates-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/Daudsaid/uk-interest-rates-pipeline/actions/workflows/ci.yml)
+[![Refresh data](https://github.com/Daudsaid/uk-interest-rates-pipeline/actions/workflows/refresh.yml/badge.svg)](https://github.com/Daudsaid/uk-interest-rates-pipeline/actions/workflows/refresh.yml)
 
-**Live dashboard:** https://boe-stats-pipeline.streamlit.app/
+**Live dashboard:** https://uk-interest-rates-pipeline.streamlit.app/
 
 A pipeline that ingests UK monetary and market data from the **Bank of England
 Interactive Database (IADB)** and models it into analysis-ready marts: every
