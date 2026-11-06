@@ -3,7 +3,7 @@
 [![CI](https://github.com/Daudsaid/boe-stats-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/Daudsaid/boe-stats-pipeline/actions/workflows/ci.yml)
 [![Refresh data](https://github.com/Daudsaid/boe-stats-pipeline/actions/workflows/refresh.yml/badge.svg)](https://github.com/Daudsaid/boe-stats-pipeline/actions/workflows/refresh.yml)
 
-**Live dashboard:** _add your Streamlit Cloud URL here_
+**Live dashboard:** https://boe-stats-pipeline.streamlit.app/
 
 A pipeline that ingests UK monetary and market data from the **Bank of England
 Interactive Database (IADB)** and models it into analysis-ready marts: every
