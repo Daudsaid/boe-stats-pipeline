@@ -4,7 +4,7 @@ with source as (
         value as base_rate_pct,
         series_code,
         extracted_at
-    from raw_base_rate
+    from {{ source('boe', 'raw_base_rate') }}
 )
 
 select

@@ -4,7 +4,7 @@ with source as (
         value as mortgage_rate_pct,
         series_code,
         extracted_at
-    from raw_mortgage_rate
+    from {{ source('boe', 'raw_mortgage_rate') }}
 )
 
 select

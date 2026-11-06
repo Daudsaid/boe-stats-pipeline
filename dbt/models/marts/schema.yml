@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: mart_gbp_fx
+    columns:
+      - name: date
+        tests:
+          - not_null
+          - unique
+      - name: gbp_usd
+        tests:
+          - not_null
+      - name: gbp_eur
+        tests:
+          - not_null
+
+  - name: mart_monetary_policy
+    columns:
+      - name: date
+        tests:
+          - not_null
+          - unique
+      - name: base_rate_pct
+        tests:
+          - not_null
+      - name: mortgage_base_spread
+        tests:
+          - not_null

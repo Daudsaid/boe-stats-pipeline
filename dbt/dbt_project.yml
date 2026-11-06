@@ -1,0 +1,21 @@
+name: 'boe_stats_pipeline'
+version: '1.0.0'
+profile: 'boe_stats_pipeline'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  boe_stats_pipeline:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

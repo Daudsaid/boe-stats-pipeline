@@ -4,7 +4,7 @@ with source as (
         value as m4_gbp_millions,
         series_code,
         extracted_at
-    from raw_m4_money_supply
+    from {{ source('boe', 'raw_m4_money_supply') }}
 )
 
 select

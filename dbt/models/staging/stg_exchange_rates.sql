@@ -1,10 +1,10 @@
 with usd as (
     select date, value as gbp_usd, extracted_at
-    from raw_gbp_usd
+    from {{ source('boe', 'raw_gbp_usd') }}
 ),
 eur as (
     select date, value as gbp_eur
-    from raw_gbp_eur
+    from {{ source('boe', 'raw_gbp_eur') }}
 )
 
 select
