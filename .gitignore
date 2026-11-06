@@ -25,3 +25,7 @@ logs/
 .DS_Store
 .idea/
 .vscode/
+
+# iCloud Desktop sync conflict copies (e.g. "Makefile 2", "cli 2.py")
+* 2
+* 2.*
