@@ -1,5 +1,6 @@
 # Committed on purpose: contains no secrets, everything comes from env vars.
-# dev  -> local DuckDB file written by `boe ingest`
+# dev      -> local DuckDB file written by `boe ingest`
+# fixtures -> separate file written by `boe ingest --fixtures` (synthetic data)
 # prod -> MotherDuck (reads MOTHERDUCK_TOKEN from the environment)
 boe:
   target: "{{ env_var('DBT_TARGET', 'dev') }}"
@@ -7,6 +8,10 @@ boe:
     dev:
       type: duckdb
       path: "{{ env_var('BOE_DUCKDB_PATH', '../data/boe.duckdb') }}"
+      threads: 4
+    fixtures:
+      type: duckdb
+      path: "{{ env_var('BOE_FIXTURES_DUCKDB_PATH', '../data/boe_fixtures.duckdb') }}"
       threads: 4
     prod:
       type: duckdb

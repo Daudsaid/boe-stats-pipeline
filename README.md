@@ -75,11 +75,14 @@ Requires [uv](https://docs.astral.sh/uv/).
 
 ```bash
 make install   # deps + pre-commit hooks
-make demo      # offline: load test fixtures -> dbt build (exactly what CI runs)
-make build     # live: pull from the Bank of England -> dbt build
+make demo      # offline: synthetic fixtures -> data/boe_fixtures.duckdb -> dbt build (what CI runs)
+make build     # live: Bank of England -> data/boe.duckdb -> dbt build (incremental after first run)
+make rebuild   # live: drop raw tables + load state, reload all history since 1975
 ```
 
-The local warehouse is `data/boe.duckdb`:
+Fixtures and real data live in separate files with separate dlt pipeline state, so
+running the demo can never contaminate the real warehouse. The real warehouse is
+`data/boe.duckdb`:
 
 ```bash
 uv run python -c "import duckdb; print(duckdb.connect('data/boe.duckdb').sql('from marts.fct_bank_rate_decisions'))"

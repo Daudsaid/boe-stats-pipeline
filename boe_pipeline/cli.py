@@ -15,11 +15,15 @@ from boe_pipeline.source import DEFAULT_START, boe_source
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DUCKDB_PATH = PROJECT_ROOT / "data" / "boe.duckdb"
+# Synthetic fixtures get their own file AND pipeline name, so fake rows and
+# fixture high-water marks can never leak into the real warehouse.
+FIXTURES_DUCKDB_PATH = PROJECT_ROOT / "data" / "boe_fixtures.duckdb"
 DATASET = "raw_boe"
 
 
 def make_destination(target: str):
-    """dev -> local DuckDB file; prod -> MotherDuck (needs MOTHERDUCK_TOKEN)."""
+    """dev -> local DuckDB file; prod -> MotherDuck (needs MOTHERDUCK_TOKEN);
+    fixtures -> separate local DuckDB file."""
     if target == "prod":
         token = os.getenv("MOTHERDUCK_TOKEN")
         if not token:
@@ -27,21 +31,30 @@ def make_destination(target: str):
         return dlt.destinations.motherduck(
             credentials={"database": os.getenv("MOTHERDUCK_DATABASE", "boe"), "password": token}
         )
-    path = Path(os.getenv("BOE_DUCKDB_PATH", DEFAULT_DUCKDB_PATH))
+    if target == "fixtures":
+        path = Path(os.getenv("BOE_FIXTURES_DUCKDB_PATH", FIXTURES_DUCKDB_PATH))
+    else:
+        path = Path(os.getenv("BOE_DUCKDB_PATH", DEFAULT_DUCKDB_PATH))
     path.parent.mkdir(parents=True, exist_ok=True)
     return dlt.destinations.duckdb(str(path))
 
 
 def ingest(args: argparse.Namespace) -> None:
     fetcher = None
+    target = args.target
+    refresh = "drop_sources" if args.full_refresh else None
     if args.fixtures:
+        if target == "prod":
+            sys.exit("--fixtures cannot be combined with --target prod")
         from boe_pipeline.fixtures import FixtureFetcher
 
         fetcher = FixtureFetcher()
+        target = "fixtures"
+        refresh = "drop_sources"  # fixtures are static: always rebuild from scratch
 
     pipeline = dlt.pipeline(
-        pipeline_name=f"boe_{args.target}",
-        destination=make_destination(args.target),
+        pipeline_name=f"boe_{target}",
+        destination=make_destination(target),
         dataset_name=DATASET,
         progress="log" if args.verbose else None,
     )
@@ -50,7 +63,7 @@ def ingest(args: argparse.Namespace) -> None:
         start_date=args.start,
         fetcher=fetcher,
     )
-    info = pipeline.run(source, refresh="drop_sources" if args.full_refresh else None)
+    info = pipeline.run(source, refresh=refresh)
     print(info)
     info.raise_on_failed_jobs()
 

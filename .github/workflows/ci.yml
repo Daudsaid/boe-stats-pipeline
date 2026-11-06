@@ -38,4 +38,6 @@ jobs:
 
       - name: dbt build (models + data tests + unit tests)
         working-directory: dbt
+        env:
+          DBT_TARGET: fixtures
         run: uv run dbt build
