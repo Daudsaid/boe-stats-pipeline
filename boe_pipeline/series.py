@@ -63,7 +63,7 @@ SERIES: tuple[Series, ...] = (
         "mortgage_rate",
     ),
     Series(
-        "IUMB479",
+        "IUMB482",
         "mortgage_2y_90ltv",
         "Quoted mortgage rate, 2y fixed, 90% LTV",
         "monthly",

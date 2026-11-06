@@ -1,4 +1,4 @@
-.PHONY: install lint test fixtures ingest ingest-fixtures dbt dbt-fixtures build rebuild demo docs clean
+.PHONY: install lint test fixtures ingest ingest-fixtures dbt dbt-fixtures build rebuild demo export app docs clean
 
 export DBT_PROFILES_DIR := $(CURDIR)/dbt
 
@@ -35,6 +35,12 @@ rebuild:          ## live: drop raw tables + state, reload everything since 1975
 	cd dbt && uv run dbt build
 
 demo: ingest-fixtures dbt-fixtures ## offline end-to-end run (what CI does)
+
+export:           ## write marts to app/data/*.parquet for the dashboard
+	uv run boe export
+
+app:              ## run the Streamlit dashboard locally
+	uv run streamlit run app/streamlit_app.py
 
 docs:
 	cd dbt && uv run dbt docs generate && uv run dbt docs serve

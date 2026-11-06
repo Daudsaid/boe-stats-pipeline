@@ -68,6 +68,19 @@ def ingest(args: argparse.Namespace) -> None:
     info.raise_on_failed_jobs()
 
 
+def export_cmd(args: argparse.Namespace) -> None:
+    from boe_pipeline.export import DEFAULT_OUT_DIR, connect, export
+
+    if args.target == "fixtures":
+        path = Path(os.getenv("BOE_FIXTURES_DUCKDB_PATH", FIXTURES_DUCKDB_PATH))
+    else:
+        path = Path(os.getenv("BOE_DUCKDB_PATH", DEFAULT_DUCKDB_PATH))
+    out_dir = Path(args.out) if args.out else DEFAULT_OUT_DIR
+    with connect(args.target, path) as con:
+        meta = export(con, out_dir)
+    print(f"exported to {out_dir}: {meta['row_counts']}")
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="boe", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -94,9 +107,14 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("-v", "--verbose", action="store_true")
     p.set_defaults(func=ingest)
 
+    e = sub.add_parser("export", help="Write dbt marts to Parquet for the Streamlit app")
+    e.add_argument("--target", choices=["dev", "prod", "fixtures"], default="dev")
+    e.add_argument("--out", help="Output directory (default: app/data)")
+    e.set_defaults(func=export_cmd)
+
     args = parser.parse_args(argv)
     logging.basicConfig(
-        level=logging.INFO if args.verbose else logging.WARNING,
+        level=logging.INFO if getattr(args, "verbose", False) else logging.WARNING,
         format="%(levelname)s %(name)s: %(message)s",
     )
     args.func(args)

@@ -1,21 +1,29 @@
-name: Refresh (MotherDuck)
+name: Refresh data
 
-# The BoE publishes daily rates/yields by about noon the next business day,
-# so run weekday afternoons (UK). Monthly series are picked up by the
-# lookback window on whichever run first sees them.
+# Weekday afternoons (UK): the BoE publishes daily rates/yields by about noon the
+# next business day. Each run pulls the BoE, rebuilds dbt, exports the marts to
+# app/data/*.parquet and commits them if they changed. That push redeploys the
+# Streamlit app automatically.
+#
+# Warehouse: if the MOTHERDUCK_TOKEN secret is set, loads go to MotherDuck
+# (incremental, state kept in the warehouse). Otherwise a throwaway DuckDB file
+# on the runner is rebuilt from scratch each run (~1 minute; history is small).
 on:
   schedule:
     - cron: "17 13 * * 1-5"
   workflow_dispatch:
     inputs:
       full_refresh:
-        description: "Drop raw tables + state and reload all history"
+        description: "Drop raw tables + state and reload all history (MotherDuck only)"
         type: boolean
         default: false
 
 concurrency:
   group: refresh
   cancel-in-progress: false
+
+permissions:
+  contents: write
 
 jobs:
   refresh:
@@ -24,7 +32,6 @@ jobs:
     env:
       MOTHERDUCK_TOKEN: ${{ secrets.MOTHERDUCK_TOKEN }}
       MOTHERDUCK_DATABASE: boe
-      DBT_TARGET: prod
       DBT_PROFILES_DIR: ${{ github.workspace }}/dbt
     steps:
       - uses: actions/checkout@v4
@@ -35,15 +42,35 @@ jobs:
 
       - run: uv sync --locked
 
+      - name: Choose warehouse
+        run: |
+          if [ -n "$MOTHERDUCK_TOKEN" ]; then echo "TARGET=prod" >> "$GITHUB_ENV";
+          else echo "TARGET=dev" >> "$GITHUB_ENV"; fi
+
       - name: Ingest from Bank of England
         run: >
-          uv run boe ingest --target prod -v
+          uv run boe ingest --target "$TARGET" -v
           ${{ inputs.full_refresh && '--full-refresh' || '' }}
 
       - name: dbt build
         working-directory: dbt
-        run: uv run dbt build
+        run: uv run dbt build --target "$TARGET"
+
+      - name: Export marts for the dashboard
+        run: uv run boe export --target "$TARGET"
+
+      - name: Commit refreshed data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/data
+          if git diff --cached --quiet; then
+            echo "No data changes."
+          else
+            git commit -m "data: refresh BoE marts ($(date -u +%Y-%m-%d))"
+            git push
+          fi
 
       - name: Source freshness
         working-directory: dbt
-        run: uv run dbt source freshness
+        run: uv run dbt source freshness --target "$TARGET"

@@ -79,7 +79,7 @@ def main() -> None:
     write("XUDLERS", walk(1.17, 0.003, days, rng, floor=1.0), 4)
 
     write("IUMBV34", [(m, bank_rate_on(m) + 0.15 + rng.gauss(0, 0.05)) for m in months], 2)
-    write("IUMB479", [(m, bank_rate_on(m) + 0.75 + rng.gauss(0, 0.05)) for m in months], 2)
+    write("IUMB482", [(m, bank_rate_on(m) + 0.75 + rng.gauss(0, 0.05)) for m in months], 2)
 
     m4, m4_rows = 2_950_000.0, []
     for m in months:

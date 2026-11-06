@@ -10,7 +10,7 @@ __pycache__/
 .dlt/secrets.toml
 
 # Local warehouse + dlt working dirs
-data/
+/data/
 *.duckdb
 *.duckdb.wal
 

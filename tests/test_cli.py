@@ -36,3 +36,37 @@ def test_fixture_ingest_always_rebuilds_from_scratch(paths):
 def test_fixtures_refuse_prod_target(paths):
     with pytest.raises(SystemExit, match="cannot be combined"):
         cli.main(["ingest", "--fixtures", "--target", "prod"])
+
+
+def test_export_writes_every_mart_and_metadata(paths, tmp_path, monkeypatch):
+    import json
+    import subprocess
+
+    from boe_pipeline.export import MARTS
+
+    _, fake = paths
+    cli.main(["ingest", "--fixtures"])
+    root = cli.PROJECT_ROOT
+    subprocess.run(
+        [
+            "dbt",
+            "build",
+            "--target",
+            "fixtures",
+            "--profiles-dir",
+            str(root / "dbt"),
+            "--project-dir",
+            str(root / "dbt"),
+            "--quiet",
+        ],
+        check=True,
+        env={**__import__("os").environ, "BOE_FIXTURES_DUCKDB_PATH": str(fake)},
+    )
+    out = tmp_path / "export"
+    cli.main(["export", "--target", "fixtures", "--out", str(out)])
+
+    for mart in MARTS:
+        assert (out / f"{mart}.parquet").stat().st_size > 0
+    meta = json.loads((out / "meta.json").read_text())
+    assert meta["row_counts"]["fct_bank_rate_decisions"] == 6
+    assert meta["series_latest"]["IUDBEDR"]["latest"] == "2025-12-31"

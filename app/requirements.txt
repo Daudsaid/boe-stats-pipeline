@@ -1,0 +1,6 @@
+# Streamlit Community Cloud installs this file (it sits next to the entrypoint),
+# so the app stays light: no dlt/dbt, just the libraries needed to read and chart.
+streamlit>=1.50
+pandas>=2.2
+pyarrow>=17
+altair>=5.4
