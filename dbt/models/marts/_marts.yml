@@ -1,0 +1,141 @@
+version: 2
+
+models:
+  - name: fct_bank_rate_decisions
+    description: Every change in Official Bank Rate, derived from the daily series.
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: decision_id
+        data_type: integer
+        constraints: [{type: not_null}]
+        data_tests: [unique]
+      - name: effective_date
+        data_type: date
+        constraints: [{type: not_null}]
+        data_tests: [unique]
+      - name: previous_rate
+        data_type: double
+      - name: new_rate
+        data_type: double
+      - name: change_bps
+        data_type: integer
+        description: New minus previous rate, in basis points. Never zero.
+      - name: direction
+        data_type: varchar
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["hike", "cut"]
+      - name: days_since_previous_change
+        data_type: integer
+        description: Null for the first change in the loaded window.
+
+  - name: fct_yield_curve_daily
+    description: Daily sterling curve (Bank Rate, SONIA, 5/10/20y gilt par yields) and spreads.
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: observed_on
+        data_type: date
+        constraints: [{type: not_null}]
+        data_tests: [unique]
+      - {name: bank_rate, data_type: double}
+      - {name: sonia, data_type: double}
+      - {name: gilt_5y, data_type: double}
+      - {name: gilt_10y, data_type: double}
+      - {name: gilt_20y, data_type: double}
+      - {name: sonia_vs_bank_rate_bps, data_type: double}
+      - {name: slope_10y_5y_bps, data_type: double}
+      - {name: slope_20y_5y_bps, data_type: double}
+      - {name: term_spread_10y_bank_bps, data_type: double}
+      - {name: is_10y_below_bank_rate, data_type: boolean}
+
+  - name: fct_monthly_macro
+    description: >
+      Month-grain panel. `_eom` = last published value in the month, `_avg` = monthly
+      average. Mortgage spread is vs average Bank Rate because quoted rates are averages.
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: month
+        data_type: date
+        constraints: [{type: not_null}]
+        data_tests: [unique]
+      - {name: bank_rate_eom, data_type: double}
+      - {name: bank_rate_avg, data_type: double}
+      - {name: sonia_avg, data_type: double}
+      - {name: gilt_10y_eom, data_type: double}
+      - {name: gilt_10y_avg, data_type: double}
+      - {name: gbp_usd_eom, data_type: double}
+      - {name: gbp_eur_eom, data_type: double}
+      - {name: gbp_usd_mom_pct, data_type: double}
+      - {name: gbp_eur_mom_pct, data_type: double}
+      - {name: mortgage_2y_75ltv, data_type: double}
+      - {name: mortgage_2y_90ltv, data_type: double}
+      - {name: mortgage_75ltv_spread_bps, data_type: double}
+      - {name: ltv_premium_90_vs_75_bps, data_type: double}
+      - {name: m4_outstanding, data_type: double, description: "£ millions, seasonally adjusted"}
+      - {name: m4_growth_12m, data_type: double, description: "Percent, as published by the BoE"}
+
+  - name: fct_decision_market_reaction
+    description: >
+      10y gilt and GBP/USD moves from the last close before each Bank Rate change to N
+      business days after (var `reaction_days`, default 5), plus the 2y fixed mortgage
+      rate one month before vs three months after. Windows not yet complete are null.
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: decision_id
+        data_type: integer
+        constraints: [{type: not_null}]
+        data_tests:
+          - unique
+          - relationships:
+              arguments:
+                to: ref('fct_bank_rate_decisions')
+                field: decision_id
+      - {name: effective_date, data_type: date}
+      - {name: direction, data_type: varchar}
+      - {name: change_bps, data_type: integer}
+      - {name: baseline_date, data_type: date}
+      - {name: reaction_date, data_type: date}
+      - {name: gilt_10y_move_bps, data_type: double}
+      - {name: gbp_usd_move_pct, data_type: double}
+      - {name: mortgage_2y_75ltv_before, data_type: double}
+      - {name: mortgage_2y_75ltv_after_3m, data_type: double}
+      - {name: mortgage_move_3m_bps, data_type: double}
+
+unit_tests:
+  - name: decisions_only_count_actual_changes
+    description: >
+      Flat days are not decisions, the first observation has no previous rate,
+      and change_bps / direction / days_since_previous_change are computed correctly.
+    model: fct_bank_rate_decisions
+    given:
+      - input: ref('stg_boe__observations')
+        rows:
+          - {series_name: bank_rate, observed_on: 2025-01-01, value: 4.75}
+          - {series_name: bank_rate, observed_on: 2025-01-02, value: 4.75}
+          - {series_name: bank_rate, observed_on: 2025-02-06, value: 4.50}
+          - {series_name: bank_rate, observed_on: 2025-02-07, value: 4.50}
+          - {series_name: bank_rate, observed_on: 2025-05-08, value: 4.75}
+          - {series_name: sonia,     observed_on: 2025-05-08, value: 9.99}
+    expect:
+      rows:
+        - {decision_id: 1, effective_date: 2025-02-06, previous_rate: 4.75, new_rate: 4.50,
+           change_bps: -25, direction: cut, days_since_previous_change: null}
+        - {decision_id: 2, effective_date: 2025-05-08, previous_rate: 4.50, new_rate: 4.75,
+           change_bps: 25, direction: hike, days_since_previous_change: 91}
+
+  - name: yield_curve_drops_incomplete_days
+    model: fct_yield_curve_daily
+    given:
+      - input: ref('int_daily_rates_wide')
+        rows:
+          - {observed_on: 2025-03-03, bank_rate: 4.5, sonia: 4.45, gilt_5y: 4.1, gilt_10y: 4.6, gilt_20y: 5.1}
+          - {observed_on: 2025-03-04, bank_rate: 4.5, sonia: 4.45, gilt_5y: 4.1, gilt_10y: null, gilt_20y: 5.1}
+    expect:
+      rows:
+        - {observed_on: 2025-03-03, sonia_vs_bank_rate_bps: -5.0, slope_10y_5y_bps: 50.0,
+           slope_20y_5y_bps: 100.0, term_spread_10y_bank_bps: 10.0, is_10y_below_bank_rate: false}

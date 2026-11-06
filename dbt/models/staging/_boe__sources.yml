@@ -1,0 +1,31 @@
+version: 2
+
+sources:
+  - name: boe
+    description: Raw Bank of England IADB data, loaded by dlt (`boe ingest`).
+    schema: raw_boe
+    tables:
+      - name: observations
+        description: One row per series per observation date (long format).
+        config:
+          loaded_at_field: "cast(date as timestamp)"
+          freshness:
+            warn_after: {count: 7, period: day}
+            error_after: {count: 21, period: day}
+        columns:
+          - name: series_code
+            data_tests: [not_null]
+          - name: date
+            data_tests: [not_null]
+          - name: value
+            data_tests: [not_null]
+        data_tests:
+          - unique_combination:
+              arguments:
+                columns: [series_code, date]
+
+      - name: series
+        description: Series registry (boe_pipeline/series.py), replaced on every load.
+        columns:
+          - name: code
+            data_tests: [unique, not_null]

@@ -1,0 +1,49 @@
+name: Refresh (MotherDuck)
+
+# The BoE publishes daily rates/yields by about noon the next business day,
+# so run weekday afternoons (UK). Monthly series are picked up by the
+# lookback window on whichever run first sees them.
+on:
+  schedule:
+    - cron: "17 13 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      full_refresh:
+        description: "Drop raw tables + state and reload all history"
+        type: boolean
+        default: false
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MOTHERDUCK_TOKEN: ${{ secrets.MOTHERDUCK_TOKEN }}
+      MOTHERDUCK_DATABASE: boe
+      DBT_TARGET: prod
+      DBT_PROFILES_DIR: ${{ github.workspace }}/dbt
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - run: uv sync --locked
+
+      - name: Ingest from Bank of England
+        run: >
+          uv run boe ingest --target prod -v
+          ${{ inputs.full_refresh && '--full-refresh' || '' }}
+
+      - name: dbt build
+        working-directory: dbt
+        run: uv run dbt build
+
+      - name: Source freshness
+        working-directory: dbt
+        run: uv run dbt source freshness

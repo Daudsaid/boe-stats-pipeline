@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DBT_PROFILES_DIR: ${{ github.workspace }}/dbt
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install
+        run: uv sync --locked
+
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Python tests
+        run: uv run pytest -q
+
+      # Full pipeline against offline fixtures: no network, no secrets.
+      - name: Ingest fixtures
+        run: uv run boe ingest --fixtures
+
+      - name: dbt build (models + data tests + unit tests)
+        working-directory: dbt
+        run: uv run dbt build

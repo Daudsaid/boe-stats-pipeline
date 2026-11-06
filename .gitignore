@@ -1,20 +1,27 @@
 # Python
 __pycache__/
-*.pyc
-*.pyo
-.env
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
 
-# Data files
-data/raw/
-data/transformed/
+# Secrets
+.env
+.dlt/secrets.toml
+
+# Local warehouse + dlt working dirs
+data/
+*.duckdb
+*.duckdb.wal
 
 # dbt
-boe_stats_pipeline/logs/
-boe_stats_pipeline/target/
-boe_stats_pipeline/.user.yml
-
-# Logs
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+dbt/.user.yml
 logs/
 
-# OS
+# OS / editors
 .DS_Store
+.idea/
+.vscode/

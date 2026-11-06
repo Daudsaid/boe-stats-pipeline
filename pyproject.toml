@@ -1,0 +1,40 @@
+[project]
+name = "boe-stats-pipeline"
+version = "2.0.0"
+description = "Bank of England statistics pipeline: IADB -> dlt -> DuckDB/MotherDuck -> dbt"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "dlt[duckdb,motherduck]>=1.5",
+    "dbt-duckdb>=1.9",
+    "requests>=2.32",
+    "tenacity>=9.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "responses>=0.25",
+    "ruff>=0.8",
+    "pre-commit>=4.0",
+]
+
+[project.scripts]
+boe = "boe_pipeline.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["boe_pipeline"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
