@@ -1,4 +1,6 @@
-# BoE Stats Pipeline
+# UK Interest Rates Pipeline
+
+*50 years of Bank of England data, from Bank Rate to your mortgage.*
 
 [![CI](https://github.com/Daudsaid/boe-stats-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/Daudsaid/boe-stats-pipeline/actions/workflows/ci.yml)
 [![Refresh data](https://github.com/Daudsaid/boe-stats-pipeline/actions/workflows/refresh.yml/badge.svg)](https://github.com/Daudsaid/boe-stats-pipeline/actions/workflows/refresh.yml)

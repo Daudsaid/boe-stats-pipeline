@@ -1,4 +1,4 @@
-"""UK interest rates since 1975: Streamlit dashboard on the BoE pipeline marts.
+"""UK Interest Rates Pipeline: Streamlit dashboard on the BoE pipeline marts.
 
 Reads the Parquet files in app/data (written by `boe export`), so the deployed
 app needs no database or secrets. Run locally with:
@@ -24,7 +24,7 @@ SLOT = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100"]
 
 alt.data_transformers.disable_max_rows()
 
-st.set_page_config(page_title="UK interest rates since 1975", page_icon="📈", layout="wide")
+st.set_page_config(page_title="UK Interest Rates Pipeline", page_icon="📈", layout="wide")
 
 
 # --------------------------------------------------------------------------- data
@@ -162,7 +162,8 @@ decisions, reaction, curve, monthly, meta = (
 today = pd.Timestamp(date.today())
 latest_br = meta["series_latest"].get("IUDBEDR", {}).get("latest", "?")
 
-st.title("UK interest rates since 1975")
+st.title("UK Interest Rates Pipeline")
+st.markdown("##### 50 years of Bank of England data, from Bank Rate to your mortgage")
 st.caption(
     f"Bank of England data, latest Bank Rate observation {latest_br}. "
     f"Refreshed {meta['exported_at'][:10]} by an automated pipeline "
